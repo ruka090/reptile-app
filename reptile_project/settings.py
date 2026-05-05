@@ -1,15 +1,18 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-h^ul940f47rrfjuecln144ryi6puy3&q9b18g2d_a=vyxxc*&n'
+SECRET_KEY = 'django-insecure-change-this'
 
-# 本番用
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
 
+# ========================
+# アプリ
+# ========================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -17,12 +20,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'reptile.apps.ReptileConfig',
+
+    'reptile',
 ]
 
+
+# ========================
+# ミドルウェア
+# ========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ←追加
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ←重要
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -31,8 +39,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'reptile_project.urls'
 
+
+# ========================
+# テンプレ
+# ========================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -49,9 +62,13 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'reptile_project.wsgi.application'
 
 
+# ========================
+# DB
+# ========================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -60,29 +77,40 @@ DATABASES = {
 }
 
 
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+# ========================
+# パスワード
+# ========================
+AUTH_PASSWORD_VALIDATORS = []
 
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+# ========================
+# 言語
+# ========================
+LANGUAGE_CODE = 'ja'
+
+TIME_ZONE = 'Asia/Tokyo'
+
 USE_I18N = True
 USE_TZ = True
 
 
-# Static files
+# ========================
+# STATIC（超重要）
+# ========================
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-# Media files
+# ========================
+# MEDIA
+# ========================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
