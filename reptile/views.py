@@ -269,3 +269,19 @@ def feeding_record_count(request):
         'months': months,
         'counts': counts
     })
+
+def feeding_record_list(request):
+    month = request.GET.get('month')
+    reptile_id = request.GET.get('reptile_id')
+
+    records = FeedingRecord.objects.all()
+    if month:
+        records = records.filter(date__month=month)
+    if reptile_id:
+        records = records.filter(reptile_id=reptile_id)
+
+    reptiles = Reptile.objects.all()
+    return render(request, 'feeding_record_list.html', {
+        'feeding_records': records,
+        'reptiles': reptiles
+    })
