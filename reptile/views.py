@@ -4,30 +4,112 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from .models import Reptile, FeedingLog, FeedingRecord
-from .forms import FeedingRecordForm
-from .forms import ReptileForm
-from django.views import View
-from django.utils.dateparse import parse_datetime
-import json
+from .models import Reptile, FeedingRecord
+from .forms import FeedingRecordForm, ReptileForm
 from django.http import Http404, JsonResponse
 from django.contrib.auth.decorators import login_required
+import json
 
-@login_required
-def reptile_detail(request, id):
-    reptile = get_object_or_404(Reptile, pk=id)
-    return render(request, 'reptile_detail.html', {'reptile': reptile})
+
+# ========================
+# 基本ページ
+# ========================
 
 def home(request):
     return render(request, 'home.html')
 
+
+@login_required
 def index(request):
-    """ カレンダー画面 """
     return render(request, "calender.html")
 
 
+# ========================
+# 認証系
+# ========================
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "アカウント作成成功！ログインしてください")
+            return redirect('login')
+        else:
+            messages.error(request, f"エラー: {form.errors}")
+    else:
+        form = UserCreationForm()
+
+    return render(request, 'signup.html', {'form': form})
+
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('calender')
+        else:
+            messages.error(request, "ログイン失敗")
+
+    return render(request, 'login.html')
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+
+# ========================
+# 爬虫類管理
+# ========================
+
+@login_required
+def reptile_list(request):
+    reptiles = Reptile.objects.filter(owner=request.user)
+    return render(request, 'reptile_list.html', {'reptiles': reptiles})
+
+
+@login_required
+def reptile_detail(request, id):
+    reptile = get_object_or_404(Reptile, pk=id, owner=request.user)
+    return render(request, 'reptile_detail.html', {'reptile': reptile})
+
+
+@login_required
+def reptile_profile(request, reptile_id):
+    reptile = get_object_or_404(Reptile, id=reptile_id, owner=request.user)
+    feeding_records = FeedingRecord.objects.filter(reptile=reptile).order_by('-date')
+
+    return render(request, 'reptile_profile.html', {
+        'reptile': reptile,
+        'feeding_records': feeding_records,
+    })
+
+
+@login_required
+def add_reptile(request):
+    if request.method == 'POST':
+        form = ReptileForm(request.POST, request.FILES)
+        if form.is_valid():
+            reptile = form.save(commit=False)
+            reptile.owner = request.user
+            reptile.save()
+            return redirect('reptile_list')
+    else:
+        form = ReptileForm()
+
+    return render(request, 'add_reptile.html', {'form': form})
+
+
+@login_required
 def edit_reptile_profile(request, reptile_id):
     reptile = get_object_or_404(Reptile, id=reptile_id, owner=request.user)
+
     if request.method == 'POST':
         form = ReptileForm(request.POST, request.FILES, instance=reptile)
         if form.is_valid():
@@ -36,214 +118,154 @@ def edit_reptile_profile(request, reptile_id):
     else:
         form = ReptileForm(instance=reptile)
 
-    return render(request, 'edit_reptile_profile.html', {'form': form, 'reptile': reptile})
+    return render(request, 'edit_reptile_profile.html', {
+        'form': form,
+        'reptile': reptile
+    })
 
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'signup.html', {'form': form})
 
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('calender')
-    return render(request, 'login.html')
+# ========================
+# 餌やり記録
+# ========================
 
-def logout_view(request):
-    logout(request)
-    return redirect('login')
-
-def reptile_profile(request, reptile_id):
-    # 飼育個体を取得。所有者がリクエストユーザーであることを確認。
-    try:
-        reptile = get_object_or_404(Reptile, id=reptile_id, owner=request.user)
-    except Http404:
-        messages.error(request, "指定された飼育個体が見つかりません。")
-        return redirect('reptile_list')  # 飼育個体一覧にリダイレクト
-
-    # 飼育個体の餌やり記録を取得
-    feeding_records = FeedingRecord.objects.filter(reptile=reptile).order_by('-date')
-
-    # テンプレートに渡すコンテキスト
-    context = {
-        'reptile': reptile,
-        'feeding_records': feeding_records,  # 餌やり記録も渡す
-    }
-    
-    return render(request, 'reptile_profile.html', context)
-
-def reptile_list(request):
-    reptiles = Reptile.objects.filter(owner=request.user)  # オーナーで絞り込む
-    return render(request, 'reptile_list.html', {'reptiles': reptiles})
-
-def add_reptile(request):
-    if request.method == 'POST':
-        form = ReptileForm(request.POST, request.FILES)
-        if form.is_valid():
-            reptile = form.save(commit=False)  # まず保存せずにオブジェクトを取得
-            reptile.owner = request.user  # オーナーを設定
-            reptile.save()  # オブジェクトを保存
-            return redirect('reptile_list')
-    else:
-        form = ReptileForm()
-
-    return render(request, 'add_reptile.html', {'form': form})
-
+@login_required
 def create_feeding_record(request):
     reptiles = Reptile.objects.filter(owner=request.user)
-    form = FeedingRecordForm()
 
     if request.method == 'POST':
         form = FeedingRecordForm(request.POST, request.FILES)
 
         if form.is_valid():
             feeding_record = form.save(commit=False)
-            reptile = get_object_or_404(Reptile, id=form.cleaned_data['reptile'].id, owner=request.user)
+
+            reptile = get_object_or_404(
+                Reptile,
+                id=form.cleaned_data['reptile'].id,
+                owner=request.user
+            )
+
             feeding_record.reptile = reptile
-            
-            # データを保存
+
             try:
                 feeding_record.save()
-                # 飼育個体の体重を更新
-                reptile.weight = feeding_record.weight
-                reptile.save()
 
-                messages.success(request, f"{reptile.name}の体重が{feeding_record.weight}gに更新されました。")
+                # 体重更新
+                if feeding_record.weight:
+                    reptile.weight = feeding_record.weight
+                    reptile.save()
+
+                messages.success(request, "記録保存完了！")
                 return redirect('calender')
+
             except Exception as e:
-                messages.error(request, f"記録の保存中にエラーが発生しました: {e}")
+                messages.error(request, f"保存エラー: {e}")
         else:
-            # フォームのエラーと送信されたデータを表示
-            print("フォームエラー:", form.errors)
-            print("送信されたデータ:", request.POST)
-            print("送信されたファイル:", request.FILES)
-            messages.error(request, f"フォームの入力に誤りがあります: {form.errors}")
+            messages.error(request, f"フォームエラー: {form.errors}")
 
-    return render(request, 'feeding_list.html', {'form': form, 'reptiles': reptiles})
+    else:
+        form = FeedingRecordForm()
 
+    return render(request, 'feeding_list.html', {
+        'form': form,
+        'reptiles': reptiles
+    })
+
+
+@login_required
 def feeding_logs_api(request):
-    feeding_records = FeedingRecord.objects.filter(reptile__owner=request.user).values(
-        'date', 'food_type', 'health_status', 'memo', 'reptile__name','feces_and_urine','care_items','shedding','weight'
+    records = FeedingRecord.objects.filter(
+        reptile__owner=request.user
+    ).values(
+        'date', 'food_type', 'health_status',
+        'memo', 'reptile__name',
+        'feces_and_urine', 'care_items', 'shedding', 'weight'
     )
 
     events = []
-    for record in feeding_records:
+
+    for r in records:
         events.append({
-            'title': f"{record['reptile__name']} に餌やり",
-            'start': record['date'].isoformat(),
-            'description': f" {record['memo']}\n餌の種類: {record['food_type']}\n健康状態: {record['health_status']}\n体重: {record['weight']}\nふんの状態: {record['feces_and_urine']}\nケア: {record['care_items']}\n脱皮: {record['shedding']}",
-            'color': '#32CD32'  # 美しい緑の色
+            'title': f"{r['reptile__name']} 餌",
+            'start': r['date'].isoformat(),
+            'description': f"{r['memo']}\n体重:{r['weight']}",
+            'color': '#32CD32'
         })
 
     return JsonResponse(events, safe=False)
 
 
+# ========================
+# カレンダー
+# ========================
+
+@login_required
 def calender_view(request):
-    feeding_records = FeedingRecord.objects.filter(reptile__owner=request.user)
-    reptiles = Reptile.objects.filter(owner=request.user)  # 飼育個体を取得
+    records = FeedingRecord.objects.filter(reptile__owner=request.user)
+
     events = [
         {
-            'title': record.reptile.name,
-            'start': record.date.isoformat(),
+            'title': r.reptile.name,
+            'start': r.date.isoformat(),
             'extendedProps': {
-                'description': record.memo,  # notesの代わりにmemoを使用
+                'description': r.memo
             }
         }
-        for record in feeding_records
+        for r in records
     ]
-    return render(request, 'calender.html', {'events': json.dumps(events), 'reptiles': reptiles})  # reptilesを追加
 
-def weight_history(request, reptile_id):
-    # 飼育個体を取得
-    reptile = get_object_or_404(Reptile, id=reptile_id, owner=request.user)
-
-    # 体重履歴を取得
-    dates = []
-    weights = []
-    
-    # FeedingRecordをデータベースから取得
-    records = FeedingRecord.objects.filter(reptile=reptile).order_by('date')
-
-    # デバッグ用にレコードを出力
-    print(f"Feeding Records for {reptile.name}:")
-    for record in records:
-        print(f"Date: {record.date}, Weight: {record.weight}")  # 体重があるか確認
-        if record.weight is not None:
-            dates.append(record.date.strftime('%Y-%m-%d'))
-            weights.append(float(record.weight))
-
-    # 所有する飼育個体を取得（ドロップダウン用）
     reptiles = Reptile.objects.filter(owner=request.user)
 
-    # デバッグ用に最終的なリストを出力
-    print("Final dates:", dates)
-    print("Final weights:", weights)
+    return render(request, 'calender.html', {
+        'events': json.dumps(events),
+        'reptiles': reptiles
+    })
 
-    # JSON形式でデータを返す
+
+# ========================
+# 体重グラフ
+# ========================
+
+@login_required
+def weight_history(request, reptile_id):
+    reptile = get_object_or_404(Reptile, id=reptile_id, owner=request.user)
+
+    records = FeedingRecord.objects.filter(reptile=reptile).order_by('date')
+
+    dates = []
+    weights = []
+
+    for r in records:
+        if r.weight:
+            dates.append(r.date.strftime('%Y-%m-%d'))
+            weights.append(float(r.weight))
+
+    reptiles = Reptile.objects.filter(owner=request.user)
+
     return render(request, 'weight_history.html', {
         'reptile': reptile,
         'reptiles': reptiles,
-        'dates': json.dumps(dates),  # JavaScriptで使えるようにJSON形式に変換
+        'dates': json.dumps(dates),
         'weights': json.dumps(weights),
     })
 
 
-def feeding_record_list(request):
-    month = request.GET.get('month')
-    reptile_id = request.GET.get('reptile_id')
+# ========================
+# 統計
+# ========================
 
-    records = FeedingRecord.objects.all()
-    if month:
-        records = records.filter(date__month=month)
-    if reptile_id:
-        records = records.filter(reptile_id=reptile_id)
-
-    reptiles = Reptile.objects.all()
-    return render(request, 'feeding_record_list.html', {'feeding_records': records, 'reptiles': reptiles})
+@login_required
 def feeding_record_count(request):
-    try:
-        # 月別の餌やり回数を集計
-        feeding_counts = FeedingRecord.objects.filter(
-            reptile__owner=request.user
-        ).annotate(month=TruncMonth('date'))  # 月ごとに集計
-        feeding_counts = feeding_counts.values('month').annotate(count=Count('id')).order_by('month')
+    data = FeedingRecord.objects.filter(
+        reptile__owner=request.user
+    ).annotate(month=TruncMonth('date')) \
+     .values('month') \
+     .annotate(count=Count('id')) \
+     .order_by('month')
 
-        # 月別データを整理
-        months = []
-        counts = []
+    months = [d['month'].strftime('%Y-%m') for d in data]
+    counts = [d['count'] for d in data]
 
-        for record in feeding_counts:
-            months.append(record['month'].strftime('%Y-%m'))  # YYYY-MM 形式に変換
-            counts.append(record['count'])  # 餌やり回数
-
-        # デバッグ用：データをログに出力
-        print("Months:", months)
-        print("Counts:", counts)
-
-    except FeedingRecord.DoesNotExist:
-        # データが存在しない場合の処理
-        months = []
-        counts = []
-        print("No feeding records found for the current user.")
-
-    except Exception as e:
-        # その他の例外処理
-        months = []
-        counts = []
-        print(f"An error occurred: {e}")
-
-    # JSON 形式でデータを返す
     return JsonResponse({
         'months': months,
-        'counts': counts,
+        'counts': counts
     })
-
