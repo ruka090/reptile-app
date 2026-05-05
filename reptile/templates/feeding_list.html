@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>餌やり記録</title>
+    {% load static %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg');
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .form-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        label {
+            margin-top: 10px;
+            display: block;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* これにより、paddingが全体の幅に含まれる */
+        }
+        button {
+            background-color: #0b6502;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #095f17;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #04642b;
+        }
+        .care-icons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .care-icons img {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            transition: transform 0.2s; /* アニメーション効果を追加 */
+        }
+        .care-icons img.selected {
+            border: 2px solid #0b6502; /* 選択されたアイコンの境界線を設定 */
+            transform: scale(1.1); /* 選択されたアイコンを少し拡大 */
+        }
+        .form-field {
+            margin-bottom: 15px; /* フォームフィールドの間にスペースを作る */
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>餌やり記録</h1>
+        <form method="POST" enctype="multipart/form-data" action="{% url 'create_feeding_record' %}">
+            {% csrf_token %}
+            <div class="form-field">
+                {{ form.reptile.label }} <!-- ラベルを表示 -->
+                {{ form.reptile }} <!-- フィールドを表示 -->
+            </div>
+            <div class="form-field">
+                {{ form.date.label }}
+                {{ form.date }}
+            </div>
+            <div class="form-field">
+                {{ form.food_type.label }}
+                {{ form.food_type }}
+            </div>
+            <div class="form-field">
+                {{ form.memo.label }}
+                {{ form.memo }}
+            </div>
+            <div class="form-field">
+                {{ form.weight.label }}
+                {{ form.weight }}
+            </div>
+            <input type="hidden" name="health_status" id="health_status" value="">
+            <label for="health_status">調子</label>
+            <div class="care-icons">
+                <img src="{% static 'img/23066223.jpg' %}" alt="かなり良好" onclick="setHealthStatus('very_good', this)">
+                <img src="{% static 'img/23066224.jpg' %}" alt="良好" onclick="setHealthStatus('good', this)">
+                <img src="{% static 'img/23066225.jpg' %}" alt="普通" onclick="setHealthStatus('normal', this)">
+                <img src="{% static 'img/23066226.jpg' %}" alt="少し悪い" onclick="setHealthStatus('slightly_bad', this)">
+                <img src="{% static 'img/23066227.jpg' %}" alt="かなり悪い" onclick="setHealthStatus('very_bad', this)">
+            </div>
+
+            <input type="hidden" name="care_items" id="care_items" value="">
+            <label for="care_items">ケア</label>
+            <div class="care-icons">
+                <img src="{% static 'img\broom_cleaning_18296.png' %}" alt="掃除" onclick="setCareItems('掃除', this)">
+                <img src="{% static 'img\bath_12352-300x300.png' %}" alt="温浴" onclick="setCareItems('温浴', this)">
+                <img src="{% static 'img\hand_icon_1231-300x300.png' %}" alt="ハンドリング" onclick="setCareItems('ハンドリング', this)">
+                <img src="{% static 'img\OIP (1).jpg' %}" alt="水替え" onclick="setCareItems('水替え', this)">
+            </div>
+            <div class="form-field">
+                <label for="feces_and_urine">ふんと尿</label>
+                <select name="feces_and_urine" id="feces_and_urine">
+                    <option value="">選択してください</option>
+                    <option value="いい">いい</option>
+                    <option value="わるい">わるい</option>
+                </select>
+            </div>
+            
+            <div class="form-field">
+                <label for="shedding">脱皮</label>
+                <select name="shedding" id="shedding">
+                    <option value="">選択してください</option>
+                    <option value="白濁">白濁</option>
+                    <option value="脱皮">脱皮</option>
+                </select>
+            </div>
+            <div class="form-field">
+                {{ form.image.label }}
+                {{ form.image }}  <!-- 画像フィールドを追加 -->
+            </div>
+            <button type="submit">記録</button>
+        </form>
+
+        <a href="{% url 'calender' %}" class="back-link">カレンダーに戻る</a>
+    </div>
+
+    <script>
+        function setHealthStatus(status, element) {
+            document.getElementById('health_status').value = status;
+
+            // アイコンの選択状態を更新
+            const icons = document.querySelectorAll('.care-icons img');
+            icons.forEach(icon => icon.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function setCareItems(item, element) {
+            const careItemsField = document.getElementById('care_items');
+            const currentValues = careItemsField.value.split(',').filter(Boolean);
+
+            if (currentValues.includes(item)) {
+                currentValues.splice(currentValues.indexOf(item), 1);
+            } else {
+                currentValues.push(item);
+            }
+            careItemsField.value = currentValues.join(',');
+
+            // アイコンの選択状態を更新
+            element.classList.toggle('selected');
+        }
+    </script>
+</body>
+</html>

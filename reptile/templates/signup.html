@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+       
+    <meta charset="UTF-8">
+       
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>サインアップ</title>
+        <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg');
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #e8f5e9;
+            /* 明るいグリーンの背景 */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            color: #333;
+        }
+
+        h1 {
+            color: #2e7d32;
+            /* 濃いグリーン */
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #4caf50;
+            /* グリーンのラベル */
+            text-align: left;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #66bb6a;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #388e3c;
+            transform: scale(1.02);
+        }
+
+        p {
+            margin-top: 15px;
+            color: #333;
+        }
+
+        a {
+            color: #388e3c;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #2e7d32;
+        }
+    </style>
+</head>
+
+<body>
+        <div class="container">
+        <h1>サインアップ</h1>
+                <form method="post">
+                        {% csrf_token %}
+                        <label for="id_username">ユーザー名:</label>
+                        <input type="text" name="username" id="id_username" required>
+
+                        <label for="id_password1">パスワード:</label>
+                        <input type="password" name="password1" id="id_password1" required>
+
+                        <label for="id_password2">パスワード（確認）:</label>
+                        <input type="password" name="password2" id="id_password2" required>
+
+                        <button type="submit">サインアップ</button>
+                    </form>
+                <p>すでにアカウントをお持ちですか？ <a href="{% url 'login' %}">ログイン</a></p>
+            </div>
+</body>
+
+</html>

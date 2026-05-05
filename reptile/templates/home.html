@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+       
+    <meta charset="UTF-8">
+       
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>爬虫類飼育管理アプリ</title>
+        <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg');
+            background-size: cover;
+            background-position: center;
+            background-color: rgba(204, 255, 204, 0.8);
+            /* 明るいグリーンを重ねて調整 */
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            animation: popIn 1s ease-out;
+        }
+
+        h1 {
+            color: #2E8B57;
+            /* シーグリーン */
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        h2 {
+            color: #3CB371;
+            /* ミディアムシーグリーン */
+            margin-top: 0;
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        a {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 20px;
+            background-color: #66CDAA;
+            /* ミディアムアクアマリン */
+            color: #fff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+            animation: bounce 1s ease infinite alternate;
+        }
+
+        a:hover {
+            background-color: #3CB371;
+            /* ミディアムシーグリーン */
+            transform: scale(1.05);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* モーション */
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+        <div class="container">
+                <h1>爬虫類管理アプリへようこそ</h1>
+                <p>このアプリでは、あなたの爬虫類を管理し、餌やりの記録を行うことができます。</p>
+               
+                <h2>ログインまたはサインアップしてください</h2>
+                <a href="{% url 'login' %}">ログイン</a>
+                <a href="{% url 'signup' %}">サインアップ</a>
+            </div>
+</body>
+
+</html>

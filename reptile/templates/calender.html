@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <h1>餌やりカレンダー</h1>
+    {% load static %}
+    
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap');
+        /* 全体のフォントと背景画像の設定 */
+        body {
+            font-family: 'Sylfaen', sans-serif; /* フォントファミリーの設定 */
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg'); /* 背景画像の設定 */
+            background-color: #f0f0f5; /* 背景色の設定 */
+            padding-bottom: 150px; /* 下部の余白の設定 */
+        }
+
+        /* タイトルのスタイル */
+        h1 {
+           
+            font-family: 'Hachi Maru Pop', sans-serif;
+            color: #181515; /* 文字色の設定 */
+            text-align: center; /* 中央揃え */
+            margin-bottom: 20px; /* 下部の余白の設定 */
+            font-weight: 9000; /* フォントウェイトの設定 */
+            font-style: normal;
+            font-size: 2.8em; /* フォントサイズを大きく設定 */
+        }
+
+        /* カレンダーイベント内のアイコンのスタイル */
+        .fc-event img {
+            width: 5px; /* アイコンのサイズを調整 */
+            margin-right: 5px; /* タイトルとの間隔を調整 */
+            vertical-align: middle; /* アイコンを中央に揃える */
+        }
+
+        /* カレンダーのスタイル */
+        #calendar {
+            background-image: url('https://i.pinimg.com/originals/e5/e8/c0/e5e8c030d4a67fd11d55b57a613517bd.jpg');
+            max-width: 1000px; /* カレンダーの最大幅を設定 */
+            margin: 0 auto; /* 自動で中央揃え */
+            border-radius: 60px; /* 角を丸める */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* シャドウを強めに設定 */
+            overflow: hidden; /* 内容がはみ出さないように設定 */
+            padding: 20px; /* 内側の余白を追加 */
+        }
+
+        /* ホームリンクのスタイル */
+        .home-link {
+            display: block; /* ブロック表示 */
+            text-align: center; /* 中央揃え */
+            margin: 20px; /* 上下の余白を追加 */
+            font-size: 18px; /* フォントサイズの設定 */
+            color: #15660a; /* 文字色の設定 */
+            text-decoration: none; /* テキスト装飾を無しに設定 */
+            transition: color 0.3s; /* ホバー時の色変化を追加 */
+        }
+
+        /* ホームリンクのホバー時のスタイル */
+
+        /* スライダーの外枠のスタイル */
+        .reptile-slider {
+            position: relative; /* 相対位置に設定 */
+            overflow: hidden; /* 内容がはみ出さないように設定 */
+            width: 100%; /* 幅を100%に設定 */
+            max-width: 500px; /* 最大幅を設定 */
+            margin: 20px auto; /* 自動で上下の余白を追加して中央揃え */
+        }
+
+        /* スライダー内の画像のスタイル */
+        .reptile-images {
+            display: flex;
+            object-fit: cover; /* フレックスボックスを使用 */
+            transition: transform 0.08s ease; /* スライド効果を追加 */
+        }
+
+        /* 個々の画像のスタイル */
+        .reptile-image {
+            min-width: 100px; /* 画像の最小幅を設定 */
+            margin: 5px; /* 画像の間隔を設定 */
+            border-radius: 50%; /* 画像を丸くする */
+            overflow: hidden; /* 内容がはみ出さないように設定 */
+            width: 80px; /* 画像の幅を設定 */
+            height: 100px; /* 画像の高さを設定 */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 影を追加 */
+        }
+
+        /* 画像内のimg要素のスタイル */
+        .reptile-image img {
+            width: 100%; /* 幅を100%に設定 */
+            height: 5; /* 高さは自動で設定 */
+            display: block; /* ブロック表示 */
+        }
+
+        /* スライダーのボタンのスタイル */
+        .slider-buttons {
+            position: absolute; /* 絶対位置に設定 */
+            top: 50%; /* 上から50%の位置に設定 */
+            width: 100%; /* 幅を100%に設定 */
+            display: flex; /* フレックスボックスを使用 */
+            justify-content: space-between; /* 要素を両端に配置 */
+            transform: translateY(-50%); /* 垂直方向に中央揃え */
+        }
+
+        /* スライドボタンのスタイル */
+        .slider-button {
+            background-color: rgba(255, 255, 255, 0.628); /* 背景色を半透明に設定 */
+            border: none; /* 枠線を無しに設定 */
+            padding: 10px; /* 内側の余白を設定 */
+            cursor: pointer; /* カーソルをポインターに変更 */
+            border-radius: 50%; /* ボタンを丸くする */
+            transition: background-color 0.3s; /* 背景色のトランジション */
+            font-size: 20px; /* フォントサイズを調整 */
+        }
+
+        /* スライドボタンのホバー時のスタイル */
+        .slider-button:hover {
+            background-color: rgba(255, 255, 255, 1); /* ホバー時に背景色を変更 */
+        }
+
+        /* カレンダーの日付セルのスタイル */
+        .fc-daygrid-day {
+            border: 1px solid #eee; /* 日付の境界線を設定 */
+            background-color: #f9f9f9; /* 日付の背景色を設定 */
+        }
+
+        /* 日付セルのホバー時のスタイル */
+        .fc-daygrid-day:hover {
+            background-color: #ffe6a1; /* ホバー時に背景色を変更 */
+        }
+
+        /* カレンダーイベントのスタイル */
+        .events {
+            color: #4CAF50; /* イベントの背景色を設定 */
+            color: rgb(18, 16, 16); /* イベントの文字色を設定 */
+            border-radius: 5px; /* 角を丸める */
+            padding: 5px; /* 内側の余白を設定 */
+            text-align: center; /* 中央揃え */
+        }
+
+        /* ナビゲーションバーのスタイル */
+        .navbar {
+    font-family: 'Hachi Maru Pop', sans-serif;
+    background-image: url('https://i.pinimg.com/originals/e5/e8/c0/e5e8c030d4a67fd11d55b57a613517bd.jpg');
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(40, 167, 69, 0.9);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5px 0; /* パディングを減らして高さを調整 */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.navbar a {
+    color: rgb(35, 35, 35);
+    font-weight: bold;
+    padding: 5px 10px; /* 内側の余白を調整 */
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center; /* アイコンとテキストの中央揃え */
+}
+
+.navbar a img.navbar-icon {
+    width: 55px; /* アイコンの幅を小さく */
+    height: 55px; /* アイコンの高さを小さく */
+    margin-right: 5px;
+} 
+        
+    </style>
+</head>
+<body>
+
+    <div class="reptile-slider">
+        <div class="reptile-images">
+            {% for reptile in reptiles %}
+                <div class="reptile-image">
+                    <a href="{% url 'reptile_profile' reptile.id %}"> <!-- プロフィールへのリンク -->
+                        {% if reptile.thumbnail %}
+                            <img src="{{ reptile.thumbnail.url }}" alt="{{ reptile.name }}の画像">
+                        {% else %}
+                            <img src="https://th.bing.com/th/id/R.9fe153e29f2960e17de89c48680e4e07?rik=iwqvjoNJe3J31A&riu=http%3a%2f%2f2.bp.blogspot.com%2f-0vbwma5M87I%2fVqyppgyhCSI%2fAAAAAAAABSs%2f5TiXzRHoGmo%2fs1600%2ficon73.jpg&ehk=bEyQnZZ92QXFCHyZUQFow0KQ7qOShRcqtztffKEF9qU%3d&risl=&pid=ImgRaw&r=0" alt="デフォルト画像">
+                        {% endif %}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="slider-buttons">
+            <button class="slider-button" id="prevBtn">❮</button>
+            <button class="slider-button" id="nextBtn">❯</button>
+        </div>
+    </div>
+
+    <div id="calendar"></div>
+
+    <div class="navbar">
+        <a href="{% url 'weight_history' 1 %}" class="navbar-item">
+                <img src="{% static 'img\ダウンロード (2).jpg' %}" alt="分析" class="navbar-icon"> analysis 
+            </a>
+        <a href="{% url 'calender' %}">
+            <img src="{% static 'img\ダウンロード (3).jpg' %}" alt="カレンダー" class="navbar-icon"> carendar
+        </a>
+        <a href="{% url 'reptile_list' %}">
+            <img src="{% static 'img\bc0ff855c693f627b88ea6291dd8e261_t.jpeg' %}" alt="ペット" class="navbar-icon"> pet
+        </a>
+        <a href="{% url 'home' %}" class="home-link">
+            <img src="{% static 'img\ダウンロード (4).jpg' %}" alt="ホーム" class="navbar-icon"> home
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+    var calendarEl = document.getElementById('calendar');
+
+    // カレンダーの初期化
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'ja',
+        initialView: 'dayGridMonth',
+        events: '/api/feeding-logs/',  // 餌やり記録のAPIからイベントを取得
+        dateClick: function (info) {
+            // 日付クリックで個体リストに遷移し、クリックした日付をクエリパラメータとして渡す
+            window.location.href = "{% url 'reptile_list' %}?date=" + info.dateStr;
+        },
+        eventClick: function (info) {
+            // 餌やりイベントの詳細をアラートで表示
+            alert('餌やり: ' + info.event.title + '\nメモ: ' + info.event.extendedProps.description);
+        },
+        eventContent: function (arg) {
+            // アイコンをイベントタイトルの横に表示する処理
+            var icon = document.createElement('img');
+            icon.src = arg.event.extendedProps.icon || '';  // アイコンのURLを取得（デフォルトで空文字）
+            icon.style.width = '20px';
+            icon.style.marginRight = '5px';
+
+            var title = document.createElement('span');
+            title.innerText = arg.event.title;
+
+            var container = document.createElement('div');
+            container.appendChild(icon);
+            container.appendChild(title);
+
+            return { domNodes: [container] };
+        }
+    });
+
+    // カレンダーをレンダリング
+    calendar.render();
+
+    // スライドショーの機能
+    const reptileImages = document.querySelector('.reptile-images');
+    const reptiles = document.querySelectorAll('.reptile-image');
+    const totalReptiles = reptiles.length;
+    const reptileWidth = reptiles[0]?.offsetWidth || 100;  // 画像の幅（デフォルト100px）
+    let currentIndex = 0;
+
+    // 「次へ」ボタンのクリックイベント
+    document.getElementById('nextBtn').addEventListener('click', function () {
+        currentIndex = (currentIndex + 1) % totalReptiles;
+        updateSlider();
+    });
+
+    // 「前へ」ボタンのクリックイベント
+    document.getElementById('prevBtn').addEventListener('click', function () {
+        currentIndex = (currentIndex - 1 + totalReptiles) % totalReptiles;
+        updateSlider();
+    });
+
+    function updateSlider() {
+        const offset = -currentIndex * reptileWidth;
+        reptileImages.style.transform = `translateX(${offset}px)`;
+        reptileImages.style.transition = 'transform 0.1s';  // スムーズなスライドアニメーション
+    }
+});
+    </script>
+</body>
+</html>

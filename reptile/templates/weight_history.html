@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <h1>体重推移</h1>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% load static %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap');
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg'); /* 背景画像を全体に表示 */
+            margin: 0;
+            padding-bottom: 130px;
+            color: #343a40;
+        }
+        h1 {
+            font-family: 'Hachi Maru Pop', sans-serif;
+            text-align: center;
+            color: #0f120f;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .dropdown {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .dropdown select {
+            padding: 10px;
+            border: 1px solid #065b10;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        canvas {
+            max-width: 1000px; /* グラフの最大幅を大きく */
+            width: 90%; /* 幅を90%に設定 */
+            margin: 20px auto; /* 自動マージンで中央揃え */
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            background-color: white;
+            padding: 20px; /* パディングを追加 */
+        }
+        .back-button, .weight-chart-btn {
+            display: block;
+            text-align: center;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #28a745; /* 緑基調に変更 */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-button:hover, .weight-chart-btn:hover {
+            background-color: #218838; /* ホバー時の色 */
+        }
+        .navbar {
+            font-family: 'Hachi Maru Pop', sans-serif;
+    background-image: url('https://i.pinimg.com/originals/e5/e8/c0/e5e8c030d4a67fd11d55b57a613517bd.jpg');
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(40, 167, 69, 0.9);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.navbar a {
+    color: rgb(35, 35, 35);
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.navbar a:hover {
+    background-color: #b8b8b8;
+}
+
+.navbar a {
+    color: rgb(35, 32, 32);
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    align-items: center; /* アイコンとテキストを中央に揃える */
+}
+
+.navbar a img.navbar-icon {
+    width: 60px; /* アイコンの幅を設定 */
+    height: 60px; /* アイコンの高さを設定 */
+    margin-right: 1px; /* アイコンとテキストの間にスペースを追加 */
+}
+
+    </style>
+</head>
+<body>
+    <div class="dropdown"><select id="reptileSelect" aria-label="個体を選択してください">
+        <option value="">選択してください</option>
+        {% for reptile in reptiles %}
+            <option value="{{ reptile.id }}">{{ reptile.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+    <button id="goToWeightHistory" class="weight-chart-btn">体重グラフを見る</button>
+    <canvas id="weightChart"></canvas>
+    <canvas id="feedingChart" width="400" height="200"></canvas>
+    <div class="navbar">
+        <a href="{% url 'weight_history' 1 %}" class="navbar-item">
+                <img src="{% static 'img\ダウンロード (2).jpg' %}" alt="分析" class="navbar-icon"> analysis 
+            </a>
+        <a href="{% url 'calender' %}">
+            <img src="{% static 'img\ダウンロード (3).jpg' %}" alt="カレンダー" class="navbar-icon"> carendar
+        </a>
+        <a href="{% url 'reptile_list' %}">
+            <img src="{% static 'img\bc0ff855c693f627b88ea6291dd8e261_t.jpeg' %}" alt="ペット" class="navbar-icon"> pet
+        </a>
+        <a href="{% url 'home' %}" class="home-link">
+            <img src="{% static 'img\ダウンロード (4).jpg' %}" alt="ホーム" class="navbar-icon"> home
+        </a>
+    </div>
+
+    </div>
+
+    <script>
+        let weightChart; // グラフ用の変数を宣言
+
+        function renderWeightChart(dates, weights) {
+            if (weightChart) {
+                weightChart.destroy(); // 既存のチャートがあれば破棄
+            }
+
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: '体重 (g)',
+                        data: weights,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                        pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                        tension: 0.1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '体重 (g)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '日付'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // データ取得関数（AJAXやFetchを利用）
+        function fetchWeightData(reptileId) {
+    fetch(`/api/weight-history/${reptileId}/`) // テンプレートリテラルを使ってreptileIdを埋め込む
+        .then(response => response.json())
+        .then(data => {
+            renderWeightChart(data.dates, data.weights); // データを使ってグラフを描画
+        })
+        .catch(error => {
+            console.error('Error fetching weight data:', error);
+        });
+}
+
+        // ページ遷移ボタンの処理
+        document.getElementById('goToWeightHistory').addEventListener('click', function () {
+            const selectedValue = document.getElementById('reptileSelect').value;
+            if (selectedValue) {
+                // 選択された個体の体重推移ページへ遷移
+                const url = "{% url 'weight_history' 0 %}".replace("0", selectedValue);
+                window.location.href = url; // ページ遷移
+            } else {
+                alert("個体を選択してください");
+            }
+        });
+
+        // ドロップダウンの変更時にデータを更新
+        document.getElementById('reptileSelect').addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue) {
+                fetchWeightData(selectedValue); // 選択されたIDでデータを取得
+            } else {
+                console.error("No reptile selected.");
+            }
+        });
+
+        // ページ読み込み時に初期データを設定
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialDates = JSON.parse('{{ dates|escapejs }}');
+            const initialWeights = JSON.parse('{{ weights|escapejs }}');
+            renderWeightChart(initialDates, initialWeights);
+        });
+        // ページ読み込み時に初期データを設定
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialMonths = JSON.parse('{{ months|escapejs }}');
+            const initialFeedingCounts = JSON.parse('{{ feeding_counts|escapejs }}');
+            renderFeedingChart(initialMonths, initialFeedingCounts); // 初期餌やり記録数グラフ
+        });
+    </script>
+    <script>
+        // JSONデータをJavaScriptで読み取る
+        const months = JSON.parse('{{ months|safe|escapejs }}');
+        const counts = JSON.parse('{{ counts|safe|escapejs }}');
+    
+        // データの確認
+        console.log(months);
+        console.log(counts);
+    
+        // Chart.jsを使って棒グラフを
+        function fetchWeightData(reptileId) {
+    fetch(`/api/weight-history/${reptileId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text(); // json() の代わりに text() を使って生データを確認
+        })
+        .then(data => {
+            try {
+                const jsonData = JSON.parse(data); // JSONが有効であれば解析
+                renderWeightChart(jsonData.dates, jsonData.weights);
+            } catch (error) {
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching weight data:', error);
+            alert('体重データの取得に失敗しました。後でもう一度試してください。');
+        });
+}
+    </script>
+
+</body>
+</html>

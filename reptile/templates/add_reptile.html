@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飼育個体の追加</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 背景と全体の設定 */
+        body {
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg'); /* 背景画像 */
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            color: #2e7d32;
+        }
+
+        /* カードレイアウト */
+        .form-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2.header {
+            text-align: center;
+            color: #388e3c;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .img-thumbnail {
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+            display: none; /* デフォルトでは非表示 */
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="file"] {
+            border: none;
+        }
+
+        .submit-button {
+            background-color: #388e3c;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .submit-button:hover {
+            background-color: #2e7d32;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #388e3c;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            color: #1b5e20;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <h2 class="header">飼育個体の追加</h2>
+
+        <!-- 画像の表示 -->
+        <div class="image-container">
+            {% if item.thumbnail %}
+                <img src="{{ item.thumbnail.url }}" class="img-thumbnail" id="preview-image" style="display: block;">
+            {% else %}
+                <p id="no-image-message">画像がありません。</p>
+                <img id="preview-image" class="img-thumbnail">
+            {% endif %}
+        </div>
+
+        <!-- フォーム -->
+        <form method="post" enctype="multipart/form-data" class="form-container">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="file" name="thumbnail" id="thumbnail-input" accept="image/*" onchange="showPreview(event)">
+            <button type="submit" class="submit-button">
+                <i class="fas fa-plus-circle"></i> 追加
+            </button>
+        </form>
+
+        <a href="{% url 'reptile_list' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> 戻る
+        </a>
+
+        <!-- エラーメッセージ -->
+        {% if form.errors %}
+            <div class="error">
+                <strong>エラー:</strong>
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // 画像プレビューを表示する関数
+        function showPreview(event) {
+            const previewImage = document.getElementById('preview-image');
+            const noImageMessage = document.getElementById('no-image-message');
+
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block'; // プレビュー画像を表示
+                    if (noImageMessage) noImageMessage.style.display = 'none'; // 「画像がありません」を非表示
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewImage.style.display = 'none'; // 画像プレビューを非表示
+                if (noImageMessage) noImageMessage.style.display = 'block'; // 「画像がありません」を表示
+            }
+        }
+    </script>
+</body>
+</html>

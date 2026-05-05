@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+       
+    <meta charset="UTF-8">
+        <title>{{ reptile.name }} のプロフィール</title>
+        <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://www.dictio.id/uploads/db3342/original/3X/a/9/a9d5200c68db959c64c8cb6171fdc684b891537c.jpeg');
+            background-size: cover;
+            background-position: center;
+            padding-bottom: 100px;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1c0a0a;
+            margin-bottom: 20px;
+            font-size: 30px;
+        }
+
+        .profile-container {
+            background-image: url('https://th.bing.com/th/id/OIP.CocjFA2pfGGHwoc5QnE_hAHaKb?rs=1&pid=ImgDetMain');
+            position: relative;
+            margin-top: 30px;
+            /* 上部に余裕を追加 */
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .profile-icon {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            /* アイコンのサイズを調整 */
+            height: 120px;
+            /* アイコンのサイズを調整 */
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+        }
+
+        .profile-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* 画像の切り抜き方を調整 */
+            transition: transform 0.3s ease;
+        }
+
+        .profile-icon img:hover {
+            transform: scale(1.1);
+        }
+
+        /* モーダルのスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 600px;
+            animation: fadeIn 0.3s;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: #f1f1f1;
+            font-size: 50px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .feeding-records {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 650px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            display: inline-block;
+            margin: 10px 5px;
+            padding: 12px 25px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #218838;
+        }
+
+        .button-container {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+        <div class="profile-container">
+                <div class="profile-icon" onclick="openModal()">
+                        {% if reptile.thumbnail %}
+                            <img src="{{ reptile.thumbnail.url }}" alt="{{ reptile.name }}">
+                        {% else %}
+                            <img
+                src="https://th.bing.com/th/id/R.9fe153e29f2960e17de89c48680e4e07?rik=iwqvjoNJe3J31A&riu=http%3a%2f%2f2.bp.blogspot.com%2f-0vbwma5M87I%2fVqyppgyhCSI%2fAAAAAAAABSs%2f5TiXzRHoGmo%2fs1600%2ficon73.jpg&ehk=bEyQnZZ92QXFCHyZUQFow0KQ7qOShRcqtztffKEF9qU%3d&risl=&pid=ImgRaw&r=0"
+                alt="デフォルト画像">
+                        {% endif %}
+                    </div>
+
+                <h1>{{ reptile.name }} のプロフィール</h1>
+
+                <ul>
+                        <li><strong>種類:</strong> {{ reptile.species }}</li>
+                        <li><strong>モルフ:</strong> {{ reptile.morph }}</li>
+                        <li><strong>お迎え日:</strong> {{ reptile.acquisition_date|date:"Y年n月j日" }}</li>
+                        <li><strong>お迎えした時の詳細:</strong> {{ reptile.feeding_schedule }}</li>
+                        <li><strong>体重:</strong> {{ reptile.weight }}</li>
+                        <li><strong>健康メモ:</strong> {{ reptile.health_notes }}</li>
+                    </ul>
+
+                <div class="button-container">
+                        <a href="{% url 'edit_reptile_profile' reptile.id %}">プロフィールを編集</a>
+                        <a href="{% url 'feeding_record_list' %}">飼育記録一覧</a>
+                        <a href="{% url 'reptile_list' %}">戻る</a>
+                    </div>
+            </div>
+
+        <!-- モーダル -->
+        <div id="myModal" class="modal">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <img class="modal-content" id="img01">
+            </div>
+
+       
+    <script>
+        function openModal() {
+            var modal = document.getElementById("myModal");
+            var img = document.querySelector(".profile-icon img");
+            var modalImg = document.getElementById("img01");
+            modal.style.display = "block";
+            modalImg.src = img.src;
+        }
+
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+        }
+    </script>
+</body>
+
+</html>

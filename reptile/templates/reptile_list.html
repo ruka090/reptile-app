@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <h1>飼育個体の一覧</h1>
+    {% load static %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap');
+        
+        body {
+            font-family: 'Hachi Maru Pop', sans-serif;
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg');
+            background-position: center;
+            color: rgb(27, 2, 2);
+            margin: 0;
+            padding-bottom: 160px;
+        }
+
+        h1 {
+            font-size: 3em;
+            text-align: center;
+            font-family: 'Hachi Maru Pop', sans-serif;
+            margin-bottom: 30px;
+            color: #28a745;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .search-bar {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            padding: 12px;
+            width: 300px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1.1em;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .card {
+            width: 300px;
+            height: 400px;
+            margin: 15px;
+            perspective: 1000px;
+            cursor: pointer;
+            transition: transform 0.6s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease-out;
+        }
+
+        .card.flip .card-content {
+            transform: rotateY(180deg);
+        }
+
+        .front, .back {
+            background-image: url('https://i.pinimg.com/originals/e5/e8/c0/e5e8c030d4a67fd11d55b57a613517bd.jpg');
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* フロント部分の設定 */
+.front {
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    display: flex; /* フレックスボックスにして中央寄せ */
+    justify-content: center; /* コンテンツを中央に配置 */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* 画像を中央寄せ、サイズ調整 */
+.front img {
+    max-width: 120px; /* 画像の最大幅 */
+    height: 120px;    /* 画像の高さ */
+    border-radius: 50%; /* 丸い画像 */
+    margin-bottom: 1px;
+    margin-right: 1;
+}
+
+/* ボタンのスタイル */
+.front .button {
+    margin-top: 10px;
+}
+        .back {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #0d0a0a;
+    transform: rotateY(180deg);
+    text-align: left;  /* 左寄せに変更 */
+    padding: 20px;
+    display: block;  /* 縦並びに */
+    box-sizing: border-box;
+}
+
+/* バックの項目（健康メモ、体重、お迎え日など）を縦並びにして間隔を調整 */
+.back p {
+    margin-bottom: 15px; /* 項目間に余白を追加 */
+    font-size: 1.1em;
+}
+
+/* 健康メモ、体重、お迎え日などの項目を見やすく */
+.back h2 {
+    font-size: 1.5em;  /* ヘッダーのフォントサイズを大きく */
+    margin-bottom: 15px; /* ヘッダーと項目の間に余白を追加 */
+}
+
+        img {
+            max-width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.6em;
+            color: #333;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .button:hover {
+            background-color: #218838;
+            transform: translateY(-3px);
+        }
+
+        .button:active {
+            transform: translateY(1px);
+        }
+
+        .navbar {
+            font-family: 'Hachi Maru Pop', sans-serif;
+            background-image: url('https://i.pinimg.com/originals/e5/e8/c0/e5e8c030d4a67fd11d55b57a613517bd.jpg');
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(40, 167, 69, 0.9);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar a {
+            color: rgb(15, 15, 15);
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .navbar a:hover {
+            background-color: #818181;
+        }
+
+        .navbar a img.navbar-icon {
+            width: 60px;
+            height: 60px;
+            margin-right: 1px;
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .actions {
+            
+            display: flex; /* フレックスボックスレイアウト */
+            justify-content: center; /* 中央揃え */
+            gap: 10px; /* 子要素間の間隔 */
+            margin-top: 20px; /* 上にマージンを追加 */
+            bottom: 20px; 
+
+        }
+
+    </style>
+</head>
+<body>
+    <div class="actions">
+        <a href="{% url 'add_reptile' %}" class="button">飼育個体を追加</a>
+        <a href="{% url 'logout' %}" class="button">ログアウト</a>
+    </div>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="search" class="search-input" placeholder="飼育個体を検索..." oninput="filterReptiles()">
+        </div>
+
+        <div class="card-container" id="cardContainer">
+            {% for reptile in reptiles %}
+                <div class="card">
+                    <div class="card-content">
+                        <!-- 前面 -->
+                        <div class="front">
+                            <div>
+                                {% if reptile.thumbnail %}
+                                    <img src="{{ reptile.thumbnail.url }}" alt="{{ reptile.name }}のサムネイル画像">
+                                {% else %}
+                                    <span>画像なし</span>
+                                {% endif %}
+                            </div>
+                            <h2>{{ reptile.name }}</h2>
+                            <p>種類: {{ reptile.species }}</p>
+                            <p>モルフ: {{ reptile.morph }}</p>
+                            <a href="{% url 'create_feeding_record' %}?reptile_id={{ reptile.id }}" class="button">餌をやる</a>
+                        </div>
+                        <!-- 背面 -->
+                        <div class="back">
+                            <h2>健康メモ</h2>
+                            <p>お迎え日: {{ reptile.acquisition_date|date:"Y年n月j日" }}</p>
+                            <p>体重: {{ reptile.weight }} g</p>
+                            <p>健康状態: {{ reptile.health_notes }}</p>
+                            <!-- 詳細ボタンをリンクにして個体IDを渡す -->
+                            <a href="{% url 'reptile_profile' reptile.id %}" class="button">詳細</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div><div class="navbar">
+        <a href="{% url 'weight_history' 1 %}" class="navbar-item">
+                <img src="{% static 'img\ダウンロード (2).jpg' %}" alt="分析" class="navbar-icon"> analysis 
+            </a>
+        <a href="{% url 'calender' %}">
+            <img src="{% static 'img\ダウンロード (3).jpg' %}" alt="カレンダー" class="navbar-icon"> carendar
+        </a>
+        <a href="{% url 'reptile_list' %}">
+            <img src="{% static 'img\bc0ff855c693f627b88ea6291dd8e261_t.jpeg' %}" alt="ペット" class="navbar-icon"> pet
+        </a>
+        <a href="{% url 'home' %}" class="home-link">
+            <img src="{% static 'img\ダウンロード (4).jpg' %}" alt="ホーム" class="navbar-icon"> home
+        </a>
+    </div>
+
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // カードをフリップする関数
+        function flipCard(card) {
+            card.classList.toggle('flip');
+        }
+
+        // 各カードにクリックイベントを追加
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('click', function() {
+                flipCard(card);
+            });
+        });
+
+        // 飼育個体の検索フィルター
+        function filterReptiles() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const reptiles = document.querySelectorAll('.card');
+            reptiles.forEach(reptile => {
+                const name = reptile.querySelector('.front h2').textContent.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    reptile.style.display = 'block';
+                } else {
+                    reptile.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

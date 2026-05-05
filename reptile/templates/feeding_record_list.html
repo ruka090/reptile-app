@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>飼育記録一覧</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap');
+
+        body {
+            font-family: 'Hachi Maru Pop', sans-serif;
+            background-image: url('https://cdn.pixabay.com/photo/2020/06/05/19/42/lizard-5264263_1280.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.8em;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-container {
+            background-color: #e0f7e9;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 128, 0, 0.2);
+            max-width: 300px;
+            margin: auto;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-container label {
+            font-weight: bold;
+            color: #2e7d32;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .filter-container select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 2px solid #66bb6a;
+            border-radius: 10px;
+            background-color: #f0fff0;
+            color: #2e7d32;
+            font-weight: bold;
+            transition: border-color 0.3s;
+        }
+
+        .filter-container select:focus {
+            border-color: #43a047;
+            outline: none;
+        }
+
+        .filter-container button {
+            background-color: #66bb6a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            box-shadow: 0px 4px 8px rgba(102, 187, 106, 0.4);
+        }
+
+        .filter-container button:hover {
+            background-color: #43a047;
+            transform: scale(1.05);
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .card {
+            background-color: #fff;
+            width: 250px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background-color: #28a745;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .card-content {
+            padding: 15px;
+            color: #4b4b4b;
+            font-size: 0.95em;
+        }
+
+        .card-details {
+            display: none;
+            background-color: #f1f1f1;
+            padding: 15px;
+            width: 100%;
+            border-top: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .card img {
+            width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+            background-color: #66bb6a;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-weight: bold;
+            box-shadow: 0px 4px 8px rgba(102, 187, 106, 0.4);
+            transition: background-color 0.3s ease;
+        }
+
+        a:hover {
+            background-color: #43a047;
+        }
+    </style>
+</head>
+<body>
+    <h1>飼育記録一覧</h1>
+
+    <div class="filter-container">
+        <form method="GET" action="">
+            <label for="month">月を選択:</label>
+            <select id="month" name="month">
+                <option value="">すべて</option>
+                <option value="1">1月</option>
+                <option value="2">2月</option>
+                <option value="3">3月</option>
+                <option value="4">4月</option>
+                <option value="5">5月</option>
+                <option value="6">6月</option>
+                <option value="7">7月</option>
+                <option value="8">8月</option>
+                <option value="9">9月</option>
+                <option value="10">10月</option>
+                <option value="11">11月</option>
+                <option value="12">12月</option>
+            </select>
+
+            <label for="reptile">個体を選択:</label>
+            <select id="reptile" name="reptile_id">
+                <option value="">すべて</option>
+                {% for reptile in reptiles %}
+                <option value="{{ reptile.id }}">{{ reptile.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">表示</button>
+        </form>
+    </div>
+
+    <div class="card-container">
+        {% for record in feeding_records %}
+        <div class="card" onclick="toggleDetails('{{ forloop.counter0 }}')">
+            <div class="card-header">{{ record.date }}</div>
+            <div class="card-content">
+                <p><strong>餌の種類:</strong> {{ record.food_type }}</p>
+                <p><strong>体重:</strong> {{ record.weight }} g</p>
+                <p><strong>メモ:</strong> {{ record.memo }}</p>
+            </div>
+            <div class="card-details" id="details-{{ forloop.counter0 }}">
+                <p><strong>ふんと尿の状態:</strong> {{ record.feces_and_urine }}</p>
+                <p><strong>脱皮の状態:</strong> {{ record.shedding }}</p>
+                <p><strong>調子:</strong> {{ record.health_status }}</p>
+                <p><strong>ケア:</strong> {{ record.care_items }}</p>
+                {% if record.image %}
+                <img src="{{ record.image.url }}" alt="Feeding Image">
+                {% else %}
+                <p>画像なし</p>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>飼育記録がありません。</p>
+        {% endfor %}
+    </div>
+
+    <div class="button-container">
+        <a href="{% url 'reptile_list' %}">戻る</a>
+    </div>
+
+    <script>
+        function toggleDetails(index) {
+            const details = document.getElementById(`details-${index}`);
+            details.style.display = details.style.display === "none" || details.style.display === "" ? "block" : "none";
+        }
+    </script>
+</body>
+</html>
